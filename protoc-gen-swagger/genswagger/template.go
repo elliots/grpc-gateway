@@ -140,6 +140,7 @@ func queryParams(message *descriptor.Message, field *descriptor.Field, prefix st
 			Items:       schema.Items,
 			Format:      schema.Format,
 			Required:    required,
+			Example:     schema.Example,
 		}
 
 		if isEnum {
@@ -662,6 +663,7 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 					var enumNames []string
 					var items *swaggerItemsObject
 					var minItems *int
+					var example json.RawMessage
 					switch pt := parameter.Target.GetType(); pt {
 					case pbdescriptor.FieldDescriptorProto_TYPE_GROUP, pbdescriptor.FieldDescriptorProto_TYPE_MESSAGE:
 						if descriptor.IsWellKnownType(parameter.Target.GetTypeName()) {
@@ -673,6 +675,7 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 							paramFormat = schema.Format
 							desc = schema.Description
 							defaultValue = schema.Default
+							example = schema.Example
 						} else {
 							return fmt.Errorf("only primitive and well-known types are allowed in path parameters")
 						}
@@ -687,6 +690,7 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 						schema := schemaOfField(parameter.Target, reg, customRefs)
 						desc = schema.Description
 						defaultValue = schema.Default
+						example = schema.Example
 					default:
 						var ok bool
 						paramType, paramFormat, ok = primitiveSchema(pt)
@@ -697,6 +701,7 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 						schema := schemaOfField(parameter.Target, reg, customRefs)
 						desc = schema.Description
 						defaultValue = schema.Default
+						example = schema.Example
 					}
 
 					if parameter.IsRepeated() {
@@ -731,6 +736,7 @@ func renderServices(services []*descriptor.Service, paths swaggerPathsObject, re
 						Items:            items,
 						CollectionFormat: collectionFormat,
 						MinItems:         minItems,
+						Example:          example,
 					})
 				}
 				// Now check if there is a body parameter
@@ -1544,6 +1550,9 @@ func updateSwaggerObjectFromJSONSchema(s *swaggerSchemaObject, j *swagger_option
 	s.MaxProperties = j.GetMaxProperties()
 	s.MinProperties = j.GetMinProperties()
 	s.Required = j.GetRequired()
+	if j != nil && j.Example != nil {
+		s.Example = json.RawMessage(j.Example.Value)
+	}
 }
 
 func swaggerSchemaFromProtoSchema(s *swagger_options.Schema, reg *descriptor.Registry, refs refMap) swaggerSchemaObject {

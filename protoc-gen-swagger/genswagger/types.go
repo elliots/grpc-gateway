@@ -125,6 +125,7 @@ type swaggerParameterObject struct {
 	CollectionFormat string              `json:"collectionFormat,omitempty"`
 	Default          string              `json:"default,omitempty"`
 	MinItems         *int                `json:"minItems,omitempty"`
+	Example          json.RawMessage     `json:"x-example,omitempty"`
 
 	// Or you can explicitly refer to another type. If this is defined all
 	// other fields should be empty
